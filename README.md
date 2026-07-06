@@ -9,9 +9,9 @@ It includes:
 
 ## Project Structure
 
-- `src/` - backend API
+- `backend/` - Express API and MongoDB models
 - `frontend/` - React dashboard
-- `server-sdk/` - standalone logging SDK package
+- root `package.json` - workspace entrypoint for the two apps
 
 ## Prerequisites
 
@@ -20,17 +20,10 @@ It includes:
 
 ## Setup
 
-1. Copy `.env.example` to `.env` and configure the values.
-2. Install backend dependencies from the repo root:
+1. Copy `backend/.env.example` to `backend/.env` and configure the values.
+2. Install dependencies from the repo root:
 
 ```bash
-npm install
-```
-
-3. Install frontend dependencies:
-
-```bash
-cd frontend
 npm install
 ```
 
@@ -39,32 +32,43 @@ npm install
 ### Backend
 
 ```bash
-npm run dev
+npm run dev:backend
 ```
 
 Use in-memory MongoDB for testing:
 
 ```bash
-USE_INMEMORY=true npm run dev
+USE_INMEMORY=true npm run dev:backend
 ```
 
 ### Frontend
 
 ```bash
-cd frontend
-npm run dev
+npm run dev:frontend
 ```
 
-The frontend runs on Vite's default port and talks to the backend API.
+The frontend runs on Vite's default port and proxies `/api` requests to the backend during development.
+
+## Free Deploy Option
+
+The easiest no-card-friendly path for this repo is Netlify plus MongoDB Atlas free tier.
+
+- Frontend: deploy the `frontend/` app through Netlify.
+- API: use the included Netlify Function wrapper in `netlify/functions/api.js`.
+- Database: use MongoDB Atlas free tier.
+
+For Netlify, set `MONGO_URI` and `JWT_SECRET` as environment variables, then deploy from the repo root using `netlify.toml`.
 
 ## Environment Variables
 
-- `PORT` - backend port, defaults to `3000`
-- `MONGO_URI` - MongoDB connection string
-- `JWT_SECRET` - secret used to sign developer sessions
-- `JWT_EXPIRES_IN` - JWT lifetime, defaults to `7d`
-- `USE_INMEMORY` - set to `true` to start MongoDB memory server locally
-- `VITE_API_BASE_URL` - optional frontend API base URL
+- `backend/.env`
+	- `PORT` - backend port, defaults to `3000`
+	- `MONGO_URI` - MongoDB connection string
+	- `JWT_SECRET` - secret used to sign developer sessions
+	- `JWT_EXPIRES_IN` - JWT lifetime, defaults to `7d`
+	- `USE_INMEMORY` - set to `true` to start MongoDB memory server locally
+- `frontend` (optional)
+	- `VITE_API_BASE_URL` - override the API base URL when you are not using the local Vite proxy
 
 ## Main API Routes
 
@@ -77,7 +81,7 @@ The frontend runs on Vite's default port and talks to the backend API.
 
 ## SDK
 
-The publishable SDK lives in `server-sdk/` and exposes `init()` and `log()` for sending logs from a Node.js app.
+The backend exposes JSON endpoints for auth, applications, and log ingestion/retrieval. Add a separate SDK package when you are ready to publish a client library.
 
 ## Quick Smoke Test
 

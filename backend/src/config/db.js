@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 let mongodInstance = null;
+let connectionPromise = null;
 
 const connectDB = async () => {
   let uri = process.env.MONGO_URI;
@@ -15,12 +16,21 @@ const connectDB = async () => {
 
   if (!uri) throw new Error('MONGO_URI not configured and in-memory not enabled');
 
-  await mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
+
+  if (!connectionPromise) {
+    connectionPromise = mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+  }
+
+  await connectionPromise;
 
   console.log('Connected to MongoDB');
+  return mongoose.connection;
 };
 
 const stopInMemory = async () => {
